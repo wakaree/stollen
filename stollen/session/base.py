@@ -110,9 +110,8 @@ class BaseSession(ABC):
         response: StollenResponse,
     ) -> Any:
         for header in client.hide_headers:
-            if header not in response.headers:
-                continue
-            response.headers[header] = "********"
+            if header in request.headers:
+                request.headers[header] = "********"
 
         try:
             if response.status_code not in client.error_codes and response.status_code < 400:
