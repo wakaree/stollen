@@ -103,6 +103,10 @@ class RequestSerializer:
         for name, field in method.model_fields.items():
             key: str = field.serialization_alias or field.alias or name
 
+            # `key in dump` tells an explicitly-set field (key present, possibly None) apart
+            # from one dropped by exclude_defaults (key absent); model_dump already applied
+            # the exclude_defaults philosophy, so we just trust its output here.
+            field_present: bool = key in dump
             field_value = dump.get(key)
             if isinstance(field_value, InputFile):
                 payload[RequestFieldType.FILE][key] = field_value
@@ -115,7 +119,9 @@ class RequestSerializer:
                 field=field,
                 field_value=field_value,
             )
-            if field_value is None and self.exclude_defaults:
+            # An explicit None reaches the request only as a JSON null in the body;
+            # query/header/placeholder cannot carry null (yarl raises), so None is dropped there.
+            if field_value is None and not (field_present and field_type == RequestFieldType.BODY):
                 continue
 
             fields = payload.setdefault(field_type, {})
