@@ -82,7 +82,7 @@ class RequestSerializer:
 
         if field_type == RequestFieldType.QUERY and not isinstance(
             field_value,
-            (str, int, float),
+            (str, int, float, list),
         ):
             field_value = self.json_dumps(field_value)
 

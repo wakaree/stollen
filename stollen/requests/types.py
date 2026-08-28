@@ -12,7 +12,7 @@ class StollenRequest(BaseModel):
     http_method: str
     response_data_key: list[str] = Field(default_factory=list)
     headers: dict[str, Any] = Field(default_factory=dict)
-    query: dict[str, Union[str, int, float]] = Field(default_factory=dict)
+    query: dict[str, Union[str, int, float, list[Union[str, int, float]]]] = Field(default_factory=dict)
     body: Optional[Any] = None
     files: Optional[dict[str, InputFile]] = None
     stream_content: bool = False
