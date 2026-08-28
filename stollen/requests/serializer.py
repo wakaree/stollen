@@ -80,11 +80,18 @@ class RequestSerializer:
             if field_value is None:
                 return field_type, None
 
-        if field_type == RequestFieldType.QUERY and not isinstance(
-            field_value,
-            (str, int, float, list),
-        ):
-            field_value = self.json_dumps(field_value)
+        if field_type == RequestFieldType.QUERY:
+            # form-style / explode=true: a list (or tuple) of scalars becomes repeated
+            # query keys (?k=1&k=2&k=3), which yarl/aiohttp expands natively. Anything
+            # else -- nested containers, models, a None inside the list -- is JSON-encoded
+            # so it never reaches yarl as an unsupported type.
+            if isinstance(field_value, (list, tuple)):
+                if all(isinstance(item, (str, int, float)) for item in field_value):
+                    field_value = list(field_value)
+                else:
+                    field_value = self.json_dumps(field_value)
+            elif not isinstance(field_value, (str, int, float)):
+                field_value = self.json_dumps(field_value)
 
         return field_type, field_value
 
